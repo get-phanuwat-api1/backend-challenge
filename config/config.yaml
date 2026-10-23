@@ -1,0 +1,31 @@
+# Default configuration for local development.
+# Every key can be overridden by an environment variable:
+# replace "." with "_" and use upper case, e.g. database.uri -> DATABASE_URI
+app:
+  name: user-service
+  env: local
+
+server:
+  http_port: 8080
+  grpc_port: 50051
+  read_timeout: 10s
+  write_timeout: 15s
+  shutdown_timeout: 10s
+
+log:
+  level: info   # debug | info | warn | error
+  format: json  # json | text
+
+database:
+  uri: mongodb://localhost:27017
+  name: user_management
+  connect_timeout: 10s
+  auto_migrate: true  # apply pending migrations on every API start (= every deploy)
+
+jwt:
+  secret: ""    # required, >= 32 bytes. Set via JWT_SECRET (never commit a real secret)
+  issuer: backend-challenge
+  ttl: 24h
+
+worker:
+  user_count_interval: 10s

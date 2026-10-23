@@ -1,0 +1,3 @@
+[
+  { "dropIndexes": "users", "index": "uniq_email" }
+]

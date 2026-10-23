@@ -1,0 +1,33 @@
+services:
+  mongo:
+    image: mongo:8
+    ports:
+      - "27017:27017"
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping').ok"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - mongodata:/data/db
+
+  # The API applies pending migrations itself on every start (database.auto_migrate: true),
+  # so every deploy (new container) brings the schema up to date before serving traffic.
+  api:
+    build: .
+    environment:
+      APP_ENV: docker                     # non-"local" env switches gin to release mode
+      DATABASE_URI: mongodb://mongo:27017 # overrides database.uri in config/config.yaml
+      # Development-only default. Override with a strong random value:
+      #   JWT_SECRET=$(openssl rand -base64 48) docker compose up
+      JWT_SECRET: ${JWT_SECRET:-dev-only-secret-change-me-0123456789abcdef}
+    ports:
+      - "8080:8080"
+      - "50051:50051"
+    restart: on-failure
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+volumes:
+  mongodata:

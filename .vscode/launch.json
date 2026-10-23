@@ -1,0 +1,54 @@
+{
+  // Debug configurations for the Go extension (golang.go). Open the backend-challenge folder
+  // itself in VS Code, then pick a configuration in Run and Debug (F5).
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API: debug",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "program": "${workspaceFolder}/cmd/api",
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "db: start mongo",
+      "env": {
+        "LOG_FORMAT": "text",
+        "LOG_LEVEL": "debug",
+        "JWT_SECRET": "dev-only-secret-change-me-0123456789abcdef"
+      }
+    },
+    {
+      "name": "Test: current package",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${fileDirname}",
+      "cwd": "${fileDirname}"
+    },
+    {
+      "name": "Test: selected function (select the Test name first)",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${fileDirname}",
+      "cwd": "${fileDirname}",
+      "args": ["-test.run", "^${selectedText}$", "-test.v"]
+    },
+    {
+      "name": "Test: component (E2E within service)",
+      "type": "go",
+      "request": "launch",
+      "mode": "test",
+      "program": "${workspaceFolder}/test/component",
+      "cwd": "${workspaceFolder}/test/component",
+      "args": ["-test.v"]
+    },
+    {
+      "name": "Attach: running process",
+      "type": "go",
+      "request": "attach",
+      "mode": "local",
+      "processId": "${command:pickGoProcess}"
+    }
+  ]
+}

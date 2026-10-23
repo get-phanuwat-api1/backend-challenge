@@ -1,0 +1,6 @@
+.git
+.vscode
+coverage.out
+postman
+test
+*.md

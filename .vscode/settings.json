@@ -1,0 +1,9 @@
+{
+  "go.testFlags": ["-race", "-count=1"],
+  "go.testTimeout": "5m",
+  "go.lintOnSave": "package",
+  "[go]": {
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": { "source.organizeImports": "explicit" }
+  }
+}

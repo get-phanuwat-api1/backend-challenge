@@ -1,0 +1,12 @@
+/bin/
+coverage.out
+*.test
+.env
+.idea/
+.vscode/*
+!.vscode/launch.json
+!.vscode/tasks.json
+!.vscode/settings.json
+!.vscode/extensions.json
+.DS_Store
+__debug_bin*

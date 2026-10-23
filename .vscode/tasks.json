@@ -1,0 +1,21 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "db: start mongo",
+      "detail": "Start MongoDB in Docker and wait until healthy; stop the dockerized API so ports 8080/50051 are free for the debugger",
+      "type": "shell",
+      "command": "docker compose up -d --wait mongo && docker compose stop api",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "silent", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "db: stop",
+      "type": "shell",
+      "command": "docker compose down",
+      "options": { "cwd": "${workspaceFolder}" },
+      "problemMatcher": []
+    }
+  ]
+}

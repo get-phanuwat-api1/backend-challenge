@@ -1,0 +1,437 @@
+basePath: /
+definitions:
+  httpapi.BaseResponse:
+    properties:
+      error_code:
+        example: ""
+        type: string
+      successful:
+        example: true
+        type: boolean
+    type: object
+  httpapi.CreateUserRequest:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      name:
+        example: Alice
+        type: string
+      password:
+        example: password123
+        type: string
+    type: object
+  httpapi.ErrorResponse:
+    properties:
+      data:
+        type: object
+        x-nullable: true
+      error_code:
+        example: INVALID_EMAIL
+        type: string
+      successful:
+        example: false
+        type: boolean
+    type: object
+  httpapi.ListUsersResponse:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/httpapi.UserListData'
+        x-nullable: true
+      error_code:
+        example: ""
+        type: string
+      successful:
+        example: true
+        type: boolean
+    type: object
+  httpapi.LoginRequest:
+    properties:
+      email:
+        example: alice@example.com
+        type: string
+      password:
+        example: password123
+        type: string
+    type: object
+  httpapi.LoginResponse:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/httpapi.TokenData'
+        x-nullable: true
+      error_code:
+        example: ""
+        type: string
+      successful:
+        example: true
+        type: boolean
+    type: object
+  httpapi.PatchUserRequest:
+    properties:
+      email:
+        example: alicia@example.com
+        type: string
+        x-nullable: "false"
+      name:
+        example: Alicia
+        type: string
+        x-nullable: "false"
+    type: object
+  httpapi.TokenData:
+    properties:
+      access_token:
+        example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+        type: string
+      expires_at:
+        example: "2026-10-22T04:24:13Z"
+        type: string
+      token_type:
+        example: Bearer
+        type: string
+    type: object
+  httpapi.UserData:
+    properties:
+      created_at:
+        example: "2026-10-21T04:24:13.532Z"
+        type: string
+      email:
+        example: alice@example.com
+        type: string
+      id:
+        example: 6ad83e6db6f99c0a372a5356
+        type: string
+      name:
+        example: Alice
+        type: string
+    type: object
+  httpapi.UserListData:
+    properties:
+      total:
+        example: 2
+        type: integer
+      users:
+        items:
+          $ref: '#/definitions/httpapi.UserData'
+        type: array
+    type: object
+  httpapi.UserResponse:
+    properties:
+      data:
+        allOf:
+        - $ref: '#/definitions/httpapi.UserData'
+        x-nullable: true
+      error_code:
+        example: ""
+        type: string
+      successful:
+        example: true
+        type: boolean
+    type: object
+info:
+  contact: {}
+  description: 'User Management API built with hexagonal architecture (ports & adapters):
+    Gin, MongoDB and JWT (HS256).'
+  title: User Management API
+  version: "1.0"
+paths:
+  /api/v1/auth/login:
+    post:
+      consumes:
+      - application/json
+      description: 'Returns an HS256-signed access token. Send it as `Authorization:
+        Bearer <token>`.'
+      operationId: login
+      parameters:
+      - description: Credentials
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.LoginResponse'
+        "400":
+          description: INVALID_REQUEST_BODY
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "401":
+          description: INVALID_CREDENTIALS
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: INTERNAL_SERVER_ERROR
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      summary: Log in and get a JWT
+      tags:
+      - auth
+  /api/v1/auth/register:
+    post:
+      consumes:
+      - application/json
+      description: |-
+        Public endpoint. Email is normalized (trimmed, lowercased) and must be unique.
+        Password must be 8–72 bytes and is stored as a bcrypt hash.
+      operationId: register
+      parameters:
+      - description: User to register
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpapi.UserResponse'
+        "400":
+          description: INVALID_REQUEST_BODY | INVALID_NAME | INVALID_EMAIL | INVALID_PASSWORD
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "409":
+          description: EMAIL_ALREADY_EXISTS
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: INTERNAL_SERVER_ERROR
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      summary: Register a new user
+      tags:
+      - auth
+  /api/v1/users:
+    get:
+      operationId: listUsers
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.ListUsersResponse'
+        "401":
+          description: UNAUTHORIZED
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: INTERNAL_SERVER_ERROR
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: List all users
+      tags:
+      - user
+    post:
+      consumes:
+      - application/json
+      description: Same rules as register, but requires an authenticated caller.
+      operationId: createUser
+      parameters:
+      - description: User to create
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.CreateUserRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/httpapi.UserResponse'
+        "400":
+          description: INVALID_REQUEST_BODY | INVALID_NAME | INVALID_EMAIL | INVALID_PASSWORD
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "401":
+          description: UNAUTHORIZED
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "409":
+          description: EMAIL_ALREADY_EXISTS
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: INTERNAL_SERVER_ERROR
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Create a new user
+      tags:
+      - user
+  /api/v1/users/{id}:
+    delete:
+      description: Users can only delete their own account.
+      operationId: deleteUserByID
+      parameters:
+      - description: User ID (MongoDB ObjectID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.BaseResponse'
+        "400":
+          description: INVALID_USER_ID
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "401":
+          description: UNAUTHORIZED
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "403":
+          description: FORBIDDEN
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: INTERNAL_SERVER_ERROR
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Delete a user
+      tags:
+      - user
+    get:
+      operationId: getUserByID
+      parameters:
+      - description: User ID (MongoDB ObjectID)
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.UserResponse'
+        "400":
+          description: INVALID_USER_ID
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "401":
+          description: UNAUTHORIZED
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: INTERNAL_SERVER_ERROR
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get a user by ID
+      tags:
+      - user
+    patch:
+      consumes:
+      - application/json
+      description: |-
+        Only keys present in the body are overwritten; at least one is required.
+        Users can only update their own account.
+      operationId: patchUserByID
+      parameters:
+      - description: User ID (MongoDB ObjectID)
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: Fields to update
+        in: body
+        name: body
+        required: true
+        schema:
+          $ref: '#/definitions/httpapi.PatchUserRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.UserResponse'
+        "400":
+          description: INVALID_REQUEST_BODY | INVALID_USER_ID | INVALID_NAME | INVALID_EMAIL
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "401":
+          description: UNAUTHORIZED
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "403":
+          description: FORBIDDEN
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "409":
+          description: EMAIL_ALREADY_EXISTS
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "500":
+          description: INTERNAL_SERVER_ERROR
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Update a user's name and/or email
+      tags:
+      - user
+  /api/v1/users/me:
+    get:
+      operationId: getMe
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/httpapi.UserResponse'
+        "401":
+          description: UNAUTHORIZED
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+        "404":
+          description: USER_NOT_FOUND
+          schema:
+            $ref: '#/definitions/httpapi.ErrorResponse'
+      security:
+      - BearerAuth: []
+      summary: Get the authenticated user
+      tags:
+      - user
+securityDefinitions:
+  BearerAuth:
+    description: Type "Bearer" followed by a space and the JWT from /api/v1/auth/login.
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
