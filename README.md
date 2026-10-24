@@ -5,7 +5,7 @@ Solution for the [7-solutions backend challenge](https://github.com/7-solutions/
 | Part | Where |
 | --- | --- |
 | 1. User Management API (Go, Gin, MongoDB, JWT, gRPC) | this repository |
-| 2. Lottery Search System (design only) | [docs/lottery-search-design.th.md](docs/lottery-search-design.th.md) |
+| 2. Lottery Search System (design only) | [lottery-search-design.md](lottery-search-design.md) |
 
 ## Features
 
